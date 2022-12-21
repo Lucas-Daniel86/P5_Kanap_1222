@@ -2,24 +2,27 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const id = urlParams.get("_id");
 if (id != null) {
-    let itemPrice = 0
+    let itemPrice = 0;
+    let imgUrl, altText
 }
 
 fetch(`http://localhost:3000/api/products/${id}`)
-.then((response) => response.json())
-.then((res) => handleData(res))
+    .then((response) => response.json())
+    .then((res) => handleData(res))
 
 function handleData(ref) {
-const {altTxt, colors, description, imageUrl, name, price, _id} = ref;
-itemPrice = price
-makeImage(imageUrl, altTxt);
-makeTitle(name);
-makePrice(price);
-makeDescription(description);
-makeColors(colors)
+    const { altTxt, colors, description, imageUrl, name, price, _id } = ref;
+    itemPrice = price;
+    imgUrl = imageUrl;
+    altText = altTxt;
+    makeImage(imageUrl, altTxt);
+    makeTitle(name);
+    makePrice(price);
+    makeDescription(description);
+    makeColors(colors)
 }
 
-function makeImage(imageUrl, altTxt){
+function makeImage(imageUrl, altTxt) {
     const image = document.createElement("img")
     image.src = imageUrl;
     image.alt = altTxt;
@@ -54,21 +57,36 @@ function makeColors(colors) {
     }
 }
 const button = document.querySelector("#addToCart");
-if (button != null) {
-    button.addEventListener("click", (e) => {
-        const color = document.querySelector("#colors").value
-        const quantity = document.querySelector("#quantity").value
-        if (color == null || color === "" || quantity == null || quantity == 0) {
-            alert("Please select a color and quantity")  
-        }
+button.addEventListener("click", handleClick);
 
-        const data = {
-            id: id,
-            color: color,
-            quantity: Number (quantity),
-            Price: itemPrice,
-        }
-        localStorage.setItem(id, JSON.stringify(data));
-        window.location.href = "cart.html"
-    })
+function handleClick() {
+    const color = document.querySelector("#colors").value
+    const quantity = document.querySelector("#quantity").value
+
+    if (isOrderInvalid(color, quantity)) return;
+    saveOrder(color, quantity);
+    redirectToCart()
+}
+
+function saveOrder(color, quantity) {
+    const data = {
+        id: id,
+        color: color,
+        quantity: Number(quantity),
+        Price: itemPrice,
+        imageUrl: imgUrl,
+        altTxt: altText
+    }
+    localStorage.setItem(id, JSON.stringify(data));
+}
+
+function isOrderInvalid(color, quantity) {
+    if (color == null || color === "" || quantity == null || quantity == 0) {
+        alert("Please select a color and quantity")
+        return true
+    }
+}
+
+function redirectToCart() {
+    window.location.href = "cart.html"
 }
