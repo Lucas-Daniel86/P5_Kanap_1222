@@ -1,7 +1,6 @@
 const cart = [];
 
 retrieveItemsFromCache();
-console.log(cart);
 cart.forEach((item) => displayItem(item));
 
 function retrieveItemsFromCache() {
@@ -17,25 +16,33 @@ function displayItem(item) {
     const article = makeArticle(item);
     const imageDiv = makeImageDiv(item);
     article.appendChild(imageDiv);
-    const cardItemContent = makeCartContent(item);
-    article.appendChild(cardItemContent);
+    const cartItemContent = makeCartContent(item);
+    article.appendChild(cartItemContent);
     displayArticle(article);
-    displayTotalQuantity(item)
+    displayTotalQuantity();
+    displayTotalPrice()
 }
 
-function displayTotalQuantity(item) {
-    const totalQuantity = document.querySelector("#totalQuantity");
-    totalQuantity.textContent = item.quantity
+function displayTotalQuantity() {
+    const totalQuantity = document.querySelector("#totalQuantity")
+    const total = cart.reduce((total, item) => total + item.quantity, 0);
+    totalQuantity.textContent = total
+}
+
+function displayTotalPrice() {
+    const totalPrice = document.querySelector("#totalPrice");
+    const total = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+    totalPrice.textContent = total;
 }
 
 function makeCartContent(item) {
-    const cardItemContent = document.createElement("div");
-    cardItemContent.classList.add("cart__item_content");
+    const cartItemContent = document.createElement("div");
+    cartItemContent.classList.add("cart__item_content");
     const description = makeDescription(item);
     const settings = makeSettings(item);
-    cardItemContent.appendChild(description);
-    cardItemContent.appendChild(settings);
-    return cardItemContent;
+    cartItemContent.appendChild(description);
+    cartItemContent.appendChild(settings);
+    return cartItemContent;
 }
 
 function makeSettings(item) {
@@ -43,17 +50,34 @@ function makeSettings(item) {
     settings.classList.add("cart__item__content__settings");
 
     addQuantityToSettings(settings, item);
-    addDeleteToSettings(settings)
+    addDeleteToSettings(settings, item)
     return settings;
 }
 
-function addDeleteToSettings(settings) {
+function addDeleteToSettings(settings, item) {
     const div = document.createElement("div")
     div.classList.add("cart__item__content__settings__Delete")
+    div.addEventListener("click", () => deleteItem(item))
     const p = document.createElement("p")
     p.textContent = "Supprimer"
     div.appendChild(p)
     settings.appendChild(div)
+}
+
+function deleteItem(item) {
+    const itemToDelete = cart.findIndex(
+        (product) => product.id === item.id && product.color === item.color)
+    cart.splice(itemToDelete, 1)
+    displayTotalPrice()
+    displayTotalQuantity()
+    deleteDataFromCache(item)
+    deleteArticleFromPage(item)
+}
+
+function deleteArticleFromPage(item) {
+    const articleToDelete = document.querySelector(
+        `article[data-id="${item.id}"][data-color="${item.color}"]`)
+    articleToDelete.remove()
 }
 
 function addQuantityToSettings(settings, item) {
@@ -69,8 +93,30 @@ function addQuantityToSettings(settings, item) {
     input.min = "1";
     input.max = "100";
     input.value = item.quantity;
+    input.addEventListener("input", () => updatePriceAndQuantity(item.id, input.value, item))
     quantity.appendChild(input);
     settings.appendChild(quantity);
+}
+
+function updatePriceAndQuantity(id, newValue, item) {
+    const itemToUpdate = cart.find((item) => item.id === id)
+    itemToUpdate.quantity = Number(newValue)
+    item.quantity = itemToUpdate.quantity
+    displayTotalQuantity()
+    displayTotalPrice()
+    saveNewDataToCache(item)
+}
+
+function deleteDataFromCache(item) {
+    const key = `${item.id}-${item.color}`
+    localStorage.removeItem(key)
+}
+
+function saveNewDataToCache(item) {
+    const dataToSave = JSON.stringify(item)
+    const key = `${item.id}-${item.color}`
+    localStorage.setItem(key, dataToSave)
+
 }
 
 function makeDescription(item) {
@@ -96,7 +142,7 @@ function displayArticle(article) {
 
 function makeArticle(item) {
     const article = document.createElement("article");
-    article.classList.add("card__item");
+    article.classList.add("cart__item");
     article.dataset.id = item.id;
     article.dataset.color = item.color;
     return article;
