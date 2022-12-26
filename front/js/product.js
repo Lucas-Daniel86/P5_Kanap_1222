@@ -3,7 +3,7 @@ const urlParams = new URLSearchParams(queryString);
 const id = urlParams.get("_id");
 if (id != null) {
     let itemPrice = 0;
-    let imgUrl, altText
+    let imgUrl, altText, articleName
 }
 
 fetch(`http://localhost:3000/api/products/${id}`)
@@ -15,6 +15,7 @@ function handleData(ref) {
     itemPrice = price;
     imgUrl = imageUrl;
     altText = altTxt;
+    articleName = name;
     makeImage(imageUrl, altTxt);
     makeTitle(name);
     makePrice(price);
@@ -73,11 +74,16 @@ function saveOrder(color, quantity) {
         id: id,
         color: color,
         quantity: Number(quantity),
-        Price: itemPrice,
+        price: itemPrice,
         imageUrl: imgUrl,
-        altTxt: altText
+        altTxt: altText,
+        name: articleName,
     }
     localStorage.setItem(id, JSON.stringify(data));
+    // creation de mon panier avec lon "caddie"  
+    // localStorage.setItem("caddie", JSON.stringify(data));
+
+
 }
 
 function isOrderInvalid(color, quantity) {
