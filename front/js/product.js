@@ -3,12 +3,12 @@ const urlParams = new URLSearchParams(queryString);
 const id = urlParams.get("_id");
 if (id != null) {
     let itemPrice = 0;
-    let imgUrl, altText, articleName
+    let imgUrl, altText, articleName;
 }
 
 fetch(`http://localhost:3000/api/products/${id}`)
     .then((response) => response.json())
-    .then((res) => handleData(res))
+    .then((res) => handleData(res));
 
 function handleData(ref) {
     const { altTxt, colors, description, imageUrl, name, price, _id } = ref;
@@ -20,11 +20,11 @@ function handleData(ref) {
     makeTitle(name);
     makePrice(price);
     makeDescription(description);
-    makeColors(colors)
+    makeColors(colors);
 }
 
 function makeImage(imageUrl, altTxt) {
-    const image = document.createElement("img")
+    const image = document.createElement("img");
     image.src = imageUrl;
     image.alt = altTxt;
     const parent = document.querySelector(".item__img");
@@ -33,17 +33,17 @@ function makeImage(imageUrl, altTxt) {
 
 function makeTitle(name) {
     const h1 = document.querySelector("#title");
-    if (h1 != null) h1.textContent = name
+    if (h1 != null) h1.textContent = name;
 }
 
 function makePrice(price) {
     const span = document.querySelector("#price");
-    if (span != null) span.textContent = price
+    if (span != null) span.textContent = price;
 }
 
 function makeDescription(description) {
     const p = document.querySelector("#description");
-    if (p != null) p.textContent = description
+    if (p != null) p.textContent = description;
 }
 
 function makeColors(colors) {
@@ -53,24 +53,24 @@ function makeColors(colors) {
             const option = document.createElement("option");
             option.value = color;
             option.textContent = color;
-            select.appendChild(option)
-        })
+            select.appendChild(option);
+        });
     }
 }
 const button = document.querySelector("#addToCart");
 button.addEventListener("click", handleClick);
 
 function handleClick() {
-    const color = document.querySelector("#colors").value
-    const quantity = document.querySelector("#quantity").value
+    const color = document.querySelector("#colors").value;
+    const quantity = document.querySelector("#quantity").value;
 
     if (isOrderInvalid(color, quantity)) return;
     saveOrder(color, quantity);
-    redirectToCart()
+    redirectToCart();
 }
 
 function saveOrder(color, quantity) {
-    const key = `$(id)-${color}`
+    const key = `$(id)-${color}`;
     const data = {
         id: id,
         color: color,
@@ -79,17 +79,17 @@ function saveOrder(color, quantity) {
         imageUrl: imgUrl,
         altTxt: altText,
         name: articleName,
-    }
+    };
     localStorage.setItem(key, JSON.stringify(data));
 }
 
 function isOrderInvalid(color, quantity) {
     if (color == null || color === "" || quantity == null || quantity == 0) {
-        alert("Please select a color and quantity")
-        return true
+        alert("Please select a color and quantity");
+        return true;
     }
 }
 
 function redirectToCart() {
-    window.location.href = "cart.html"
+    window.location.href = "cart.html";
 }

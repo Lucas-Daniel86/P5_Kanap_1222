@@ -3,6 +3,9 @@ const cart = [];
 retrieveItemsFromCache();
 cart.forEach((item) => displayItem(item));
 
+const orderButton = document.querySelector("#order");
+orderButton.addEventListener("click", (e) => submitForm(e));
+
 function retrieveItemsFromCache() {
     const numberOfItems = localStorage.length;
     for (let i = 0; i < numberOfItems; i++) {
@@ -20,18 +23,21 @@ function displayItem(item) {
     article.appendChild(cartItemContent);
     displayArticle(article);
     displayTotalQuantity();
-    displayTotalPrice()
+    displayTotalPrice();
 }
 
 function displayTotalQuantity() {
-    const totalQuantity = document.querySelector("#totalQuantity")
+    const totalQuantity = document.querySelector("#totalQuantity");
     const total = cart.reduce((total, item) => total + item.quantity, 0);
-    totalQuantity.textContent = total
+    totalQuantity.textContent = total;
 }
 
 function displayTotalPrice() {
     const totalPrice = document.querySelector("#totalPrice");
-    const total = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+    const total = cart.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+    );
     totalPrice.textContent = total;
 }
 
@@ -50,34 +56,36 @@ function makeSettings(item) {
     settings.classList.add("cart__item__content__settings");
 
     addQuantityToSettings(settings, item);
-    addDeleteToSettings(settings, item)
+    addDeleteToSettings(settings, item);
     return settings;
 }
 
 function addDeleteToSettings(settings, item) {
-    const div = document.createElement("div")
-    div.classList.add("cart__item__content__settings__Delete")
-    div.addEventListener("click", () => deleteItem(item))
-    const p = document.createElement("p")
-    p.textContent = "Supprimer"
-    div.appendChild(p)
-    settings.appendChild(div)
+    const div = document.createElement("div");
+    div.classList.add("cart__item__content__settings__Delete");
+    div.addEventListener("click", () => deleteItem(item));
+    const p = document.createElement("p");
+    p.textContent = "Supprimer";
+    div.appendChild(p);
+    settings.appendChild(div);
 }
 
 function deleteItem(item) {
     const itemToDelete = cart.findIndex(
-        (product) => product.id === item.id && product.color === item.color)
-    cart.splice(itemToDelete, 1)
-    displayTotalPrice()
-    displayTotalQuantity()
-    deleteDataFromCache(item)
-    deleteArticleFromPage(item)
+        (product) => product.id === item.id && product.color === item.color
+    );
+    cart.splice(itemToDelete, 1);
+    displayTotalPrice();
+    displayTotalQuantity();
+    deleteDataFromCache(item);
+    deleteArticleFromPage(item);
 }
 
 function deleteArticleFromPage(item) {
     const articleToDelete = document.querySelector(
-        `article[data-id="${item.id}"][data-color="${item.color}"]`)
-    articleToDelete.remove()
+        `article[data-id="${item.id}"][data-color="${item.color}"]`
+    );
+    articleToDelete.remove();
 }
 
 function addQuantityToSettings(settings, item) {
@@ -93,30 +101,31 @@ function addQuantityToSettings(settings, item) {
     input.min = "1";
     input.max = "100";
     input.value = item.quantity;
-    input.addEventListener("input", () => updatePriceAndQuantity(item.id, input.value, item))
+    input.addEventListener("input", () =>
+        updatePriceAndQuantity(item.id, input.value, item)
+    );
     quantity.appendChild(input);
     settings.appendChild(quantity);
 }
 
 function updatePriceAndQuantity(id, newValue, item) {
-    const itemToUpdate = cart.find((item) => item.id === id)
-    itemToUpdate.quantity = Number(newValue)
-    item.quantity = itemToUpdate.quantity
-    displayTotalQuantity()
-    displayTotalPrice()
-    saveNewDataToCache(item)
+    const itemToUpdate = cart.find((item) => item.id === id);
+    itemToUpdate.quantity = Number(newValue);
+    item.quantity = itemToUpdate.quantity;
+    displayTotalQuantity();
+    displayTotalPrice();
+    saveNewDataToCache(item);
 }
 
 function deleteDataFromCache(item) {
-    const key = `${item.id}-${item.color}`
-    localStorage.removeItem(key)
+    const key = `${item.id}-${item.color}`;
+    localStorage.removeItem(key);
 }
 
 function saveNewDataToCache(item) {
-    const dataToSave = JSON.stringify(item)
-    const key = `${item.id}-${item.color}`
-    localStorage.setItem(key, dataToSave)
-
+    const dataToSave = JSON.stringify(item);
+    const key = `${item.id}-${item.color}`;
+    localStorage.setItem(key, dataToSave);
 }
 
 function makeDescription(item) {
@@ -156,4 +165,50 @@ function makeImageDiv(item) {
     image.alt = item.altTxt;
     div.appendChild(image);
     return div;
+}
+
+function submitForm(e) {
+    e.preventDefault();
+    if (cart.length === 0) alert("Please select items to buy");
+    const body = makeRequestBody();
+    fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((res) => res.json())
+        .then((data) => console.log(data));
+}
+
+function makeRequestBody() {
+    const form = document.querySelector(".cart__order__form");
+    const firstName = form.elements.firstName.value;
+    const lastName = form.elements.lastName.value;
+    const address = form.elements.address.value;
+    const city = form.elements.city.value;
+    const email = form.elements.email.value;
+    const body = {
+        contact: {
+            firstName: firstName,
+            lastName: lastName,
+            address: address,
+            city: city,
+            email: email,
+        },
+        products: getIdsFromCache(),
+    };
+    return body;
+}
+
+function getIdsFromCache() {
+    const numberOfProducts = localStorage.length;
+    const ids = [];
+    for (let i = 0; i < numberOfProducts; i++) {
+        const key = localStorage.key(i);
+        const id = key.split("-")[0];
+        ids.push(id);
+    }
+    return ids
 }
