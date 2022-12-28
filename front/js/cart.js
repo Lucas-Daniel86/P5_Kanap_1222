@@ -169,17 +169,51 @@ function makeImageDiv(item) {
 
 function submitForm(e) {
     e.preventDefault();
-    if (cart.length === 0) alert("Please select items to buy");
+    if (cart.length === 0) {
+        alert("Please select items to buy");
+        return;
+    }
+
+    if (isFormInvalid()) return;
+    if (isEmailInvalid()) return;
+
     const body = makeRequestBody();
     fetch("http://localhost:3000/api/products/order", {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
-            "Content-Type": "application/json"
-        }
+            "Content-Type": "application/json",
+        },
     })
         .then((res) => res.json())
-        .then((data) => console.log(data))
+        .then((data) => {
+            const orderId = data.orderId;
+            window.location.href = "confirmation.html" + "?orderId=" + orderId;
+            return console.log(data);
+        })
+        .catch((err) => console.log(err));
+}
+
+function isEmailInvalid() {
+    const email = document.querySelector("#email").value;
+    const regex = /^[A-Za-z0-9+_.-]+@(.+)$/;
+    if (regex.test(email) === false) {
+        alert("Please enter valide email");
+        return true;
+    }
+    return false;
+}
+
+function isFormInvalid() {
+    const form = document.querySelector(".cart__order__form");
+    const inputs = form.querySelectorAll("input");
+    inputs.forEach((input) => {
+        if (input.value === "") {
+            alert("Please fill all the fields");
+            return true;
+        }
+        return false;
+    });
 }
 
 function makeRequestBody() {
@@ -195,11 +229,11 @@ function makeRequestBody() {
             lastName: lastName,
             address: address,
             city: city,
-            email: email
+            email: email,
         },
-        products: getIdsFromCache()
-    }
-    return body
+        products: getIdsFromCache(),
+    };
+    return body;
 }
 
 function getIdsFromCache() {
@@ -207,7 +241,7 @@ function getIdsFromCache() {
     const ids = [];
     for (let i = 0; i < numberOfProducts; i++) {
         const key = localStorage.key(i);
-        const id = key.split("—")[0];
+        const id = key.split("-")[0];
         ids.push(id);
     }
     return ids;
