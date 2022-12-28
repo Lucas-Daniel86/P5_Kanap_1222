@@ -175,11 +175,11 @@ function submitForm(e) {
         method: "POST",
         body: JSON.stringify(body),
         headers: {
-            "Content-Type": "application/json",
-        },
+            "Content-Type": "application/json"
+        }
     })
         .then((res) => res.json())
-        .then((data) => console.log(data));
+        .then((data) => console.log(data))
 }
 
 function makeRequestBody() {
@@ -195,11 +195,11 @@ function makeRequestBody() {
             lastName: lastName,
             address: address,
             city: city,
-            email: email,
+            email: email
         },
-        products: getIdsFromCache(),
-    };
-    return body;
+        products: getIdsFromCache()
+    }
+    return body
 }
 
 function getIdsFromCache() {
@@ -207,8 +207,8 @@ function getIdsFromCache() {
     const ids = [];
     for (let i = 0; i < numberOfProducts; i++) {
         const key = localStorage.key(i);
-        const id = key.split("-")[0];
+        const id = key.split("—")[0];
         ids.push(id);
     }
-    return ids
+    return ids;
 }

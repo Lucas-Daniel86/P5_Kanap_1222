@@ -11,7 +11,7 @@ fetch(`http://localhost:3000/api/products/${id}`)
     .then((res) => handleData(res));
 
 function handleData(ref) {
-    const { altTxt, colors, description, imageUrl, name, price, _id } = ref;
+    const { altTxt, colors, description, imageUrl, name, price } = ref;
     itemPrice = price;
     imgUrl = imageUrl;
     altText = altTxt;
@@ -70,7 +70,7 @@ function handleClick() {
 }
 
 function saveOrder(color, quantity) {
-    const key = `$(id)-${color}`;
+    const key = `${id}-${color}`
     const data = {
         id: id,
         color: color,
