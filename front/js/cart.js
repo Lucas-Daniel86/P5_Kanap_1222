@@ -189,9 +189,8 @@ function submitForm(e) {
         .then((data) => {
             const orderId = data.orderId;
             window.location.href = "confirmation.html" + "?orderId=" + orderId;
-            return console.log(data);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.error(err));
 }
 
 function isEmailInvalid() {

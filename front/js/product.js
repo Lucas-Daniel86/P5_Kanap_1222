@@ -18,7 +18,6 @@ function handleData(ref) {
     articleName = name;
     makeImage(imageUrl, altTxt);
     makeTitle(name);
-    makePrice(price);
     makeDescription(description);
     makeColors(colors);
 }
@@ -70,7 +69,7 @@ function handleClick() {
 }
 
 function saveOrder(color, quantity) {
-    const key = `${id}-${color}`
+    const key = `${id}-${color}`;
     const data = {
         id: id,
         color: color,
@@ -84,8 +83,8 @@ function saveOrder(color, quantity) {
 }
 
 function isOrderInvalid(color, quantity) {
-    if (color == null || color === "" || quantity == null || quantity == 0) {
-        alert("Please select a color and quantity");
+    if (color == null || color === "" || quantity == null || quantity <= 0 || quantity > 100) {
+        alert("Please select a color and quantity between 1 and 100");
         return true;
     }
 }
