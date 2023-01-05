@@ -1,7 +1,31 @@
 const cart = [];
-
 retrieveItemsFromCache();
-cart.forEach((item) => displayItem(item));
+let products = [];
+
+// Appel de l'API pour récupérer les produits
+fetch("http://localhost:3000/api/products")
+    .then(function (response) {
+        //console.log(response)
+        if (response.ok) {
+            return response.json();
+        }
+    })
+    .then(function (data) {
+        products = data;
+        cart.forEach((item) => {
+            const foundItem = products.find(p => p._id == item.id)
+            console.log(foundItem);
+            console.log(item);
+            if (foundItem != undefined) {
+                displayItem(item, foundItem)
+            }
+        });
+        displayTotalQuantity();
+        displayTotalPrice();
+    })
+    .catch(function (error) {
+        // Une erreur est survenue
+    })
 
 const orderButton = document.querySelector("#order");
 orderButton.addEventListener("click", (e) => submitForm(e));
@@ -15,15 +39,15 @@ function retrieveItemsFromCache() {
     }
 }
 
-function displayItem(item) {
+function displayItem(item, foundItem) {
     const article = makeArticle(item);
     const imageDiv = makeImageDiv(item);
     article.appendChild(imageDiv);
-    const cartItemContent = makeCartContent(item);
+    const cartItemContent = makeCartContent(item, foundItem);
     article.appendChild(cartItemContent);
     displayArticle(article);
-    displayTotalQuantity();
-    displayTotalPrice();
+    /*displayTotalQuantity();
+    displayTotalPrice()*/
 }
 
 function displayTotalQuantity() {
@@ -32,14 +56,14 @@ function displayTotalQuantity() {
     totalQuantity.textContent = total;
 }
 
-function displayTotalPrice() {
+/*function displayTotalPrice() {
     const totalPrice = document.querySelector("#totalPrice");
     const total = cart.reduce(
         (total, item) => total + item.price * item.quantity,
         0
     );
     totalPrice.textContent = total;
-}
+}*/
 
 function makeCartContent(item) {
     const cartItemContent = document.createElement("div");
@@ -175,6 +199,10 @@ function submitForm(e) {
     }
 
     if (isFormInvalid()) return;
+    if (isFirstNameInvalid()) return;
+    if (isLastNameInvalid()) return;
+    if (isAdressInvalid()) return;
+    if (isCityInvalid()) return;
     if (isEmailInvalid()) return;
 
     const body = makeRequestBody();
@@ -191,6 +219,23 @@ function submitForm(e) {
             window.location.href = "confirmation.html" + "?orderId=" + orderId;
         })
         .catch((err) => console.error(err));
+}
+
+function isFirstNameInvalid() {
+    const firstName = document.querySelector("#firstNameErrorMsg");
+
+}
+
+function isLastNameInvalid() {
+    const lastName = document.querySelector("#lastNameErrorMsg");
+}
+
+function isAdressInvalid() {
+    const address = document.querySelector("#addressErrorMsg");
+}
+
+function isCityInvalid() {
+    const city = document.querySelector("#cityErrorMsg");
 }
 
 function isEmailInvalid() {
