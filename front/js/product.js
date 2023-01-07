@@ -82,7 +82,13 @@ function saveOrder(color, quantity) {
 }
 
 function isOrderInvalid(color, quantity) {
-    if (color == null || color === "" || quantity == null || quantity <= 0 || quantity > 100) {
+    if (
+        color == null ||
+        color === "" ||
+        quantity == null ||
+        quantity <= 0 ||
+        quantity > 100
+    ) {
         alert("Please select a color and quantity between 1 and 100");
         return true;
     }

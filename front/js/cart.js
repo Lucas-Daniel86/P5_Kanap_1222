@@ -1,6 +1,5 @@
 const cart = [];
 retrieveItemsFromCache();
-let products = [];
 
 // Appel de l'API pour récupérer les produits
 fetch("http://localhost:3000/api/products")
@@ -28,9 +27,6 @@ fetch("http://localhost:3000/api/products")
         // Une erreur est survenue
     });
 
-const orderButton = document.querySelector("#order");
-orderButton.addEventListener("click", (e) => submitForm(e));
-
 function retrieveItemsFromCache() {
     const numberOfItems = localStorage.length;
     for (let i = 0; i < numberOfItems; i++) {
@@ -47,24 +43,17 @@ function displayItem(item, foundItem) {
     const cartItemContent = makeCartContent(item, foundItem);
     article.appendChild(cartItemContent);
     displayArticle(article);
-    /*displayTotalQuantity();
-      displayTotalPrice();*/
 }
 
 function displayTotalQuantity() {
     const totalQuantity = document.querySelector("#totalQuantity");
     const total = cart.reduce((total, item) => total + item.quantity, 0);
     totalQuantity.textContent = total;
+    if (total == null || total <= 0 || total > 100) {
+        alert("Please select a quantity between 1 and 100");
+        return true;
+    }
 }
-
-/*function displayTotalPrice() {
-    const totalPrice = document.querySelector("#totalPrice");
-    const total = cart.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-    );
-    totalPrice.textContent = total;
-}*/
 
 function displayTotalPrice() {
     const totalPrice = document.querySelector("#totalPrice");
@@ -204,81 +193,128 @@ function makeImageDiv(item) {
     return div;
 }
 
-function submitForm(e) {
+// Gestion du formulaire
+//Appel des éléments du DOM
+const form = document.querySelector(".cart__order__form"),
+    firstName = document.querySelector("#firstName"),
+    firstNameErrorMsg = document.querySelector("#firstNameErrorMsg"),
+    lastName = document.querySelector("#lastName"),
+    lastNameErrorMsg = document.querySelector("#lastNameErrorMsg"),
+    address = document.querySelector("#address"),
+    addressErrorMsg = document.querySelector("#addressErrorMsg"),
+    city = document.querySelector("#city"),
+    cityErrorMsg = document.querySelector("#cityErrorMsg"),
+    email = document.querySelector("#email"),
+    emailErrorMsg = document.querySelector("#emailErrorMsg"),
+    order = document.querySelector("#order");
+
+// Création de variables d'état
+let firstNameMode = false,
+    lastNameMode = false,
+    addressMode = false,
+    cityMode = false,
+    emailMode = false;
+
+// création des regex
+const addressRegex = /[a-zA-Z0-9\s]{8,32}/,
+    cityRegex = /^[a-záàâäãåçéèêëíìîïñóòôöõúùûüýÿæœ\s-]{1,31}$/i,
+    emailRegex = /[a-zA-Z0-9.-_]+@{1}[a-zA-Z0-9.-_]+\.{1}[a-z]{1,10}/;
+
+// Variables contenant un message d'erreur
+const firstNameErrorMessage =
+    'Merci de remplir le champ "Prénom" avec seulement des caractères.',
+    lastNameErrorMessage =
+        'Merci de remplir le champ "Nom" avec seulement des caractères.',
+    addressErrorMessage = "Adresse incorrecte.",
+    cityErrorMessage =
+        'Merci de remplir le champ "Ville" avec seulement des caractères.',
+    emailErrorMessage = "L'email n'est pas valide.";
+
+//Écoute sur chaque input et changement de la valeur de la variable d'état pour traiter le bouton order selon qu'il y ait une erreur ou non
+firstName.addEventListener("keyup", (read) => {
+    read = cityRegex.test(firstName.value);
+    firstNameErrorMsg.innerHTML = read ? "" : firstNameErrorMessage;
+    firstNameMode = read ? true : false;
+});
+
+lastName.addEventListener("keyup", (read) => {
+    read = cityRegex.test(lastName.value);
+    lastNameErrorMsg.innerHTML = read ? "" : lastNameErrorMessage;
+    lastNameMode = read ? true : false;
+});
+
+address.addEventListener("keyup", (read) => {
+    read = addressRegex.test(address.value);
+    addressErrorMsg.innerHTML = read ? "" : addressErrorMessage;
+    addressMode = read ? true : false;
+});
+
+city.addEventListener("keyup", (read) => {
+    read = cityRegex.test(city.value);
+    cityErrorMsg.innerHTML = read ? "" : cityErrorMessage;
+    cityMode = read ? true : false;
+});
+
+email.addEventListener("keyup", (read) => {
+    read = emailRegex.test(email.value);
+    emailErrorMsg.innerHTML = read ? "" : emailErrorMessage;
+    emailMode = read ? true : false;
+});
+
+//Envoi des données de la commande à l'API
+form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (cart.length === 0) {
-        alert("Please select items to buy");
-        return;
-    }
-
-    if (isFormInvalid()) return;
-    if (isEmailInvalid()) return;
-
-    const body = makeRequestBody();
-    fetch("http://localhost:3000/api/products/order", {
-        method: "POST",
-        body: JSON.stringify(body),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            const orderId = data.orderId;
-            window.location.href = "confirmation.html" + "?orderId=" + orderId;
-        })
-        .catch((err) => console.error(err));
-}
-
-function isEmailInvalid() {
-    const email = document.querySelector("#email").value;
-    const regex = /^[A-Za-z0-9+_.-]+@(.+)$/;
-    if (regex.test(email) === false) {
-        alert("Please enter valide email");
-        return true;
-    }
-    return false;
-}
-
-function isFormInvalid() {
-    const form = document.querySelector(".cart__order__form");
-    const inputs = form.querySelectorAll("input");
-    inputs.forEach((input) => {
-        if (input.value === "") {
-            alert("Please fill all the fields");
-            return true;
+        alert(
+            "Veuillez ajouter un ou plusieurs articles au panier afin de valider la commande"
+        );
+    } else if (cart.length >= 1) {
+        if (!firstNameMode) {
+            firstNameErrorMsg.innerHTML = firstNameErrorMessage;
         }
-        return false;
-    });
-}
+        if (!lastNameMode) {
+            lastNameErrorMsg.innerHTML = lastNameErrorMessage;
+        }
+        if (!addressMode) {
+            addressErrorMsg.innerHTML = addressErrorMessage;
+        }
+        if (!cityMode) {
+            cityErrorMsg.innerHTML = cityErrorMessage;
+        }
+        if (!emailMode) {
+            emailErrorMsg.innerHTML = emailErrorMessage;
+        }
+        if (firstNameMode && lastNameMode && addressMode && cityMode && emailMode) {
+            //Création de l'objet contenant les iinformations clients
+            const contact = {
+                firstName: firstName.value,
+                lastName: lastName.value,
+                address: address.value,
+                city: city.value,
+                email: email.value,
+            };
 
-function makeRequestBody() {
-    const form = document.querySelector(".cart__order__form");
-    const firstName = form.elements.firstName.value;
-    const lastName = form.elements.lastName.value;
-    const address = form.elements.address.value;
-    const city = form.elements.city.value;
-    const email = form.elements.email.value;
-    const body = {
-        contact: {
-            firstName: firstName,
-            lastName: lastName,
-            address: address,
-            city: city,
-            email: email,
-        },
-        products: getIdsFromCache(),
-    };
-    return body;
-}
+            // Création du tableau contenant les informations clients
+            const products = [];
+            for (let i = 0; i < cart.length; i++) {
+                products.push(cart[i].id);
+            }
 
-function getIdsFromCache() {
-    const numberOfProducts = localStorage.length;
-    const ids = [];
-    for (let i = 0; i < numberOfProducts; i++) {
-        const key = localStorage.key(i);
-        const id = key.split("-")[0];
-        ids.push(id);
+            //Création de l'objet contenant les infos clients et le id des produits
+            let sendData = { contact, products };
+
+            // Méthode POST pour l'envoi des donnés
+            const options = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(sendData),
+            };
+            console.log(options);
+            fetch("http://localhost:3000/api/products/order", options)
+                .then((response) => response.json())
+                .then((data) => {
+                    window.location.href = "./confirmation.html?id=" + data.orderId;
+                });
+        }
     }
-    return ids;
-}
+});
