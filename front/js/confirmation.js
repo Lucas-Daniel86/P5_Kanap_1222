@@ -8,8 +8,6 @@ function getOrderId() {
     return urlParams.get("orderId");
 }
 
-console.log(orderId);
-
 function displayOrderId(orderId) {
     const orderIdElement = document.getElementById("orderId");
     orderIdElement.textContent = orderId;

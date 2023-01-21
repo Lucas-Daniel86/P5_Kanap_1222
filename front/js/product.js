@@ -1,24 +1,43 @@
-// Application de la notion "URLSearchParams" afin de savoir quel produit doit être affiché sur la page produit, depuis la page d'accueil.
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-const id = urlParams.get("id");
+const id = getIdFromUrl();
+
 if (id === null) {
-    alert("page introuvable");
-    throw new Error("page introuvable");
+    alert("page introuvable.");
+    hidenDetails();
+    throw new Error("page introuvable.");
 }
-// Intérroger l'API pour récupérer les détails du produit.
+// Intérroger l'API pour récupérer les détails d'un produit depuis son id.
 fetch(`http://localhost:3000/api/products/${id}`)
     .then((response) => response.json())
-    .then((res) => handleData(res));
+    .then((res) => display(res))
+    .catch((err) => {
+        alert("Ce produit n'est pas disponible.");
+        hidenDetails();
+    });
+
+document.querySelector("#addToCart").addEventListener("click", () => {
+    //Récupération des éléments pour appliquer les valeurs souhaitées dans la nouvelle page.
+    const color = document.querySelector("#colors").value;
+    const quantity = document.querySelector("#quantity").value;
+
+    if (isOrderInvalid(color, quantity)) return; // Message d'erreur
+    //Les valeurs du produit à récupérer au click
+    let product = {
+        id: id,
+        color: color,
+        quantity: quantity,
+    };
+    saveOrder(product); //Les valeurs vont s'appliquer au produit pour la sauvegarde de la commande.
+    redirectToCart(); // Redirection vers la page cart.js
+});
 
 //Insérer les détails du produit dans la page produit
-function handleData(product) {
+function display(product) {
     const section = document.querySelector(".item");
     const imageBlock = section.querySelector(".item__img");
     imageBlock.innerHTML = `<img src="${product.imageUrl}" alt="${product.altTxt}">`;
 
     section.querySelector("#title").innerText = product.name;
-    section.querySelector("#price").innerText = product.price;
+    section.querySelector("#price").innerText = formatPrice(product.price);
     section.querySelector("#description").innerText = product.description;
 
     const colors = section.querySelector("#colors");
@@ -30,29 +49,10 @@ function handleData(product) {
     });
 }
 
-//Création de la constante pour récupérer l'élément button
-const button = document.querySelector("#addToCart");
-//Appeler l'évennement "click" pour renvoyer des données
-button.addEventListener("click", () => {
-    //Création des constantes pour la récupération des valeurs dans la nouvelle page
-    const color = document.querySelector("#colors").value;
-    const quantity = document.querySelector("#quantity").value;
-
-    if (isOrderInvalid(color, quantity)) return; // Message d'erreur
-    //Les valeurs du produit à récupérer au click
-    let product = {
-        id: id,
-        color: color,
-        quantity: quantity,
-    };
-    saveOrder(product); //Les données vont s'appliquer aux valeurs récupérées
-    redirectToCart(); // Redirection vers la page Cart.js
-});
-
 // Récupération du panier depuis le localStorage
 function saveOrder(product) {
     let cart;
-    // Si le panier n'est pas dans le localStorage ...
+    // Si le panier est vide ...
     if (!localStorage.getItem("cart")) {
         cart = [];
         cart.push(product);
@@ -65,21 +65,27 @@ function saveOrder(product) {
         );
 
         if (existingProduct) {
-            // Prendre le produit éxistant dans le localStorage, modifier la quantité si existe déjà un autre produit pareil
-            //La quantité du produit ne va pas dépasser la valeur 100
+            // Prendre le produit éxistant dans le localStorage.
+            // Modifier la quantité si besoin.
             existingProduct.quantity =
                 Number(existingProduct.quantity) + Number(product.quantity);
+            //La quantité du produit ne va pas dépasser la valeur de "100".
             if (existingProduct.quantity > 100) {
                 existingProduct.quantity = 100;
             }
-            // Afficher le panier en format JSON
             localStorage.setItem("cart", JSON.stringify(cart));
         } else {
-            // Ajouter le produit dans le panier
             cart.push(product);
             localStorage.setItem("cart", JSON.stringify(cart));
         }
     }
+}
+
+function getIdFromUrl() {
+    // Application de la notion "URLSearchParams" afin de savoir quel produit doit être affiché sur la page produit, depuis la page d'accueil.
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    return urlParams.get("id");
 }
 
 function isOrderInvalid(color, quantity) {
@@ -103,11 +109,11 @@ function isQuantityInvalid(quantity) {
         return true;
     }
     if (quantity <= 0) {
-        alert("Veuillez sélectionner une quantité supérieure ou égale à 1");
+        alert('Veuillez sélectionner une quantité supérieure ou égale à "1"');
         return true;
     }
     if (quantity > 100) {
-        alert("Veuillez sélectionner une quantité inférieure ou égale à 100");
+        alert('Veuillez sélectionner une quantité inférieure ou égale à "100"');
         return true;
     }
 
@@ -118,22 +124,6 @@ function redirectToCart() {
     window.location.href = "cart.html";
 }
 
-// Étape 7 : Ajouter des produits dans le panier
-// La page Produit est en place, celle-ci affiche les détails d’un produit cliqué
-// à partir de la page d’accueil. Il faut maintenant gérer la possibilité d’ajouter
-// ce produit au panier.
-// 📌 Recommandations :
-// ● Techniquement parlant, le panier peut être un array qui
-// contiendrait trois choses :
-// ○ l’id du produit ;
-// ○ la quantité du produit ;
-// ○ la couleur du produit.
-// ● Il est nécessaire d’utiliser localStorage pour pouvoir accéder à cet
-// array depuis la page Panier.
-// ● Lorsqu’on ajoute un produit au panier, si celui-ci n'était pas déjà
-// présent dans le panier, on ajoute un nouvel élément dans l’array.
-// ● Lorsqu’on ajoute un produit au panier, si celui-ci était déjà présent
-// dans le panier (même id + même couleur), on incrémente
-// simplement la quantité du produit correspondant dans l’array.
-// ● Dans localStorage, attention de ne pas multiplier inutilement des
-// éléments identiques.
+function hidenDetails() {
+    document.querySelector(".item").innerHTML = "Oops";
+}
