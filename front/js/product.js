@@ -1,10 +1,10 @@
 const id = getIdFromUrl();
-
 if (id === null) {
     alert("page introuvable.");
     hidenDetails();
     throw new Error("page introuvable.");
 }
+
 // Intérroger l'API pour récupérer les détails d'un produit depuis son id.
 fetch(`http://localhost:3000/api/products/${id}`)
     .then((response) => response.json())
@@ -49,6 +49,58 @@ function display(product) {
     });
 }
 
+// Application de la notion "URLSearchParams" afin de savoir quel produit doit être affiché sur la page produit, depuis la page d'accueil.
+function getIdFromUrl() {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    return urlParams.get("id");
+}
+
+// Message quand la page est vide.
+function hidenDetails() {
+    document.querySelector(".item").innerHTML = "Oops";
+}
+
+// Message d'alerte si la couleur n'a pas été avec certaines conditions.
+function isColorInvalid(color) {
+    if (color == null || color === "") {
+        alert("Veuillez sélectionner une couleur");
+        return true;
+    }
+    return false;
+}
+
+// Message d'alerte si la quantité n'a pas été choisie avec certaines conditions.
+function isQuantityInvalid(quantity) {
+    if (quantity == null) {
+        alert("Veuillez sélectionner une quantité");
+        return true;
+    }
+    if (quantity <= 0) {
+        alert('Veuillez sélectionner une quantité supérieure ou égale à "1"');
+        return true;
+    }
+    if (quantity > 100) {
+        alert('Veuillez sélectionner une quantité inférieure ou égale à "100"');
+        return true;
+    }
+
+    return false;
+}
+
+// Message d'alerte si la commande n'est pas remplie avec les conditions nécessaires.
+function isOrderInvalid(color, quantity) {
+    if (isColorInvalid(color) || isQuantityInvalid(quantity)) {
+        return true;
+    }
+    return false;
+}
+
+//Redirection vers la page panier.
+function redirectToCart() {
+    window.location.href = "cart.html";
+}
+
 // Récupération du panier depuis le localStorage
 function saveOrder(product) {
     let cart;
@@ -79,51 +131,4 @@ function saveOrder(product) {
             localStorage.setItem("cart", JSON.stringify(cart));
         }
     }
-}
-
-function getIdFromUrl() {
-    // Application de la notion "URLSearchParams" afin de savoir quel produit doit être affiché sur la page produit, depuis la page d'accueil.
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    return urlParams.get("id");
-}
-
-function isOrderInvalid(color, quantity) {
-    if (isColorInvalid(color) || isQuantityInvalid(quantity)) {
-        return true;
-    }
-    return false;
-}
-
-function isColorInvalid(color) {
-    if (color == null || color === "") {
-        alert("Veuillez sélectionner une couleur");
-        return true;
-    }
-    return false;
-}
-
-function isQuantityInvalid(quantity) {
-    if (quantity == null) {
-        alert("Veuillez sélectionner une quantité");
-        return true;
-    }
-    if (quantity <= 0) {
-        alert('Veuillez sélectionner une quantité supérieure ou égale à "1"');
-        return true;
-    }
-    if (quantity > 100) {
-        alert('Veuillez sélectionner une quantité inférieure ou égale à "100"');
-        return true;
-    }
-
-    return false;
-}
-
-function redirectToCart() {
-    window.location.href = "cart.html";
-}
-
-function hidenDetails() {
-    document.querySelector(".item").innerHTML = "Oops";
 }
